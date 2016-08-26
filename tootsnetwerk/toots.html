@@ -1,71 +1,222 @@
 <!doctype html>
 <html>
 <head>
+  <title>Toots Thielemans: Van bij ons, en van de wereld</title>
   <script type="text/javascript" src="toots.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min.css" rel="stylesheet" type="text/css" />
 
   <style type="text/css">
-    #mynetwork {
+    body {
       width: 600px;
-      height: 600px;
+      margin: auto;
+    }
+
+    footer {
+      margin: 50px;
+      font-size: 80%;
+    }
+
+    #text {
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+
+    #caption {
+      width: 800px;
+      margin-left: -100px;
+      text-align: center;
+      font-style: italic;
+    }
+
+    #mynetwork {
+      width: 800px;
+      height: 400px;
+      margin-left: -100px;
       border: 1px solid lightgray;
     }
   </style>
 </head>
 <body>
 
+<header>
+  <h1>Toots Thielemans<br>Van bij ons, en van de wereld</h1>
+  <em>Tom Ruette, </em>
+  <p>26 Augustus 2016</p>
+</header>
+
+<div id="text">
+  <a href="http://www.muziekarchief.be/identitydetails.php?ID=132692">Toots Thielemans</a> is een legende van de <a href="http://www.leslundisdhortense.be/public/index.php/nl/">Belgische</a> <a href="http://www.jazzinbelgium.com/home/lang=nl">jazz</a> met een enorme internationale uitstraling.
+  Die internationale werking manifesteert zich ook in het netwerk van muzikanten waarmee Toots platen heeft opgenomen.
+  Ik ben het <a href="http://muziekarchief.be">muziekarchief</a> ingedoken om zijn internationale netwerk van collega's in kaart te brengen.
+</div>
+
 <div id="mynetwork"></div>
+<div id="caption">
+  <p>
+    Het netwerk van artiesten waarmee Toots Thielemans (geel) platen heeft opgenomen.
+    Belgische muzikanten worden met rode bolletjes getoond.
+    Verplaats de graaf door te slepen zonder een bolletje aan te klikken.
+    Zoom in door te scrollen.
+    Met de muis boven een bolletje blijven hangen toont na een seconde de naam van de artiest.
+    Klikken op een bolletje benadrukt de direct gelinkte artiesten van de gekozen artiest.
+    Bron: <a href="http://muziekarchief.be">Muziekarchief</a>.
+  </p>
+</div>
+
+<div id="text">
+  <p>
+    Mijn collega's bij het <a href="http://kunsten.be">Kunstenpunt</a> kunnen deze graaf in meer detail interpreteren. Mij vallen slechts enkele observaties in:
+    <ul>
+      <li>
+        Van de (toch wel beperkte groep van) Belgische muzikanten waarmee Toots platen heeft opgenomen, is het wel meteen duidelijk dat zij vaak een brugfunctie vervullen.
+        Bruno Castellucci, Michel Herr, Michel Hatzigeorgiou en Nathalie Loriers maken de verbinding tussen Toots en andere groepen.
+      </li>
+      <li>
+        Er tekenen zich duidelijke groepen af, die hoogstwaarschijnlijk sterk gerelateerd zijn aan de platen waarop er samengewerkt werd.
+        Desondanks is er toch een sterke cohesie tussen de groepen door een aantal brugfiguren.
+      </li>
+      <li>
+        Toots is een Belgische muzikant, met een niet te onderschatten netwerk van andere Belgische muzikanten, maar de meeste samenwerkingen (die resulteerden in een album) zijn met buitenlanders.
+      </li>
+    </ul>
+  </p>
+</div>
+
+<div id="text">
+  <p>
+    De code waarmee deze visualisatie tot stand is gekomen is vrij beschikbaar via <a href="https://github.com/Kunstenpunt/datakunstjes/tree/master/tootsnetwerk">Github</a>.
+  </p>
+  <p>
+    Het script haalt per plaat van Toots Thielemans de muzikanten op die meewerkten.
+    Elke muzikant wordt zo een knoop in het netwerk, en samenwerken aan een plaat impliceert een connectie in de graaf.
+    Een manuele stap corrigeerde eventuele kleine foutjes in de <a href="http://muziekarchief.be">Muziekarchief</a> data, en voegde ook de Belg/Niet Belg labeling toe.
+    De visualisatie wordt in de browser gerenderd door <a href="http://visjs.org">visjs</a>.
+  </p>
+</div>
+
+<footer>
+  Tom is Hoofd Informatiebeheer bij <a href="http://kunsten.be">Kunstenpunt</a>. Bij vragen of om verbeteringen voor te stellen kan je hem contacteren via tom@kunsten.be.
+</footer>
 
 <script type="text/javascript">
   var network;
+  var allNodes;
+  var highlightActive = false;
 
+  var nodesDataset = new vis.DataSet(nodes);
+  var edgesDataset = new vis.DataSet(edges);
 
   function redrawAll() {
-    // remove positoins
-    for (var i = 0; i < nodes.length; i++) {
-      delete nodes[i].x;
-      delete nodes[i].y;
-    }
-
-    // create a network
     var container = document.getElementById('mynetwork');
-    var data = {
-      nodes: nodes,
-      edges: edges
-    };
     var options = {
       nodes: {
         shape: 'dot',
         scaling: {
-          min: 30,
-          max: 80
+          min: 40,
+          max: 100
         },
         font: {
-          size: 12,
+          size: 16,
           face: 'Tahoma'
         }
       },
       edges: {
         width: 0.15,
-        color: 'grey',
+        color: '#d3d3d3',
         smooth: false
       },
       physics: {
-        stabilization: false,
         barnesHut: {
           gravitationalConstant: -80000,
           springConstant: 0.001,
-          springLength: 200
-        }
-      },
+          springLength: 200}
+        },
       interaction: {
         tooltipDelay: 200,
         hideEdgesOnDrag: true
       }
     };
+    var data = {nodes:nodesDataset, edges:edgesDataset} // Note: data is coming from ./datasources/WorldCup2014.js
 
     network = new vis.Network(container, data, options);
+
+    allNodes = nodesDataset.get({returnType:"Object"});
+
+    network.on("click",neighbourhoodHighlight);
+  }
+
+  function neighbourhoodHighlight(params) {
+    // if something is selected:
+    if (params.nodes.length > 0) {
+      highlightActive = true;
+      var i,j;
+      var selectedNode = params.nodes[0];
+      var degrees = 2;
+
+      // mark all nodes as hard to read.
+      for (var nodeId in allNodes) {
+        allNodes[nodeId].color = 'rgba(200,200,200,0.5)';
+        if (allNodes[nodeId].hiddenLabel === undefined) {
+          allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+          allNodes[nodeId].label = undefined;
+        }
+      }
+      var connectedNodes = network.getConnectedNodes(selectedNode);
+      var allConnectedNodes = [];
+
+      // get the second degree nodes
+      for (i = 1; i < degrees; i++) {
+        for (j = 0; j < connectedNodes.length; j++) {
+          allConnectedNodes = allConnectedNodes.concat(network.getConnectedNodes(connectedNodes[j]));
+        }
+      }
+
+      // all second degree nodes get a different color and their label back
+      for (i = 0; i < allConnectedNodes.length; i++) {
+        allNodes[allConnectedNodes[i]].color = 'rgba(150,150,150,0.75)';
+        if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+          allNodes[allConnectedNodes[i]].label = allNodes[allConnectedNodes[i]].hiddenLabel;
+          allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+        }
+      }
+
+      // all first degree nodes get their own color and their label back
+      for (i = 0; i < connectedNodes.length; i++) {
+        allNodes[connectedNodes[i]].color = undefined;
+        if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+          allNodes[connectedNodes[i]].label = allNodes[connectedNodes[i]].hiddenLabel;
+          allNodes[connectedNodes[i]].hiddenLabel = undefined;
+        }
+      }
+
+      // the main node gets its own color and its label back.
+      allNodes[selectedNode].color = undefined;
+      if (allNodes[selectedNode].hiddenLabel !== undefined) {
+        allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+        allNodes[selectedNode].hiddenLabel = undefined;
+      }
+    }
+    else if (highlightActive === true) {
+      // reset all nodes
+      for (var nodeId in allNodes) {
+        allNodes[nodeId].color = undefined;
+        if (allNodes[nodeId].hiddenLabel !== undefined) {
+          allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+          allNodes[nodeId].hiddenLabel = undefined;
+        }
+      }
+      highlightActive = false
+    }
+
+    // transform the object into an array
+    var updateArray = [];
+    for (nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodesDataset.update(updateArray);
   }
 
   redrawAll()
