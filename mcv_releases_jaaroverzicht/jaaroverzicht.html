@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <title>Jaaroverzicht releases 2016</title>
+
+  <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+  <link href="http://visjs.org/dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="nodes.js"></script>
+  <script type="text/javascript" src="edges.js"></script>
+
+  <style type="text/css">
+    #mynetwork {
+      width: 900px;
+      height: 500px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+
+<p>Een grafiekje</p>
+
+<p>Albumhoesjes gelinkt aan een genre</p>
+
+<div id="mynetwork"></div>
+
+<pre id="mcv"></pre>
+
+<p>Als dat niet mooi is. By the way; zit je er niet in, laat iets weten aan Quinten.</p>
+
+<script type="text/javascript">
+  var network;
+
+
+  function redrawAll() {
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+      nodes: rawnodes,
+      edges: rawedges
+    };
+    var options = {
+      nodes: {
+        scaling: {
+          min: 20,
+          max: 40
+        },
+        font: {
+          size: 25,
+          face: 'Tahoma'
+        }
+      },
+      edges: {
+        width: 0.75,
+        color: {inherit: 'from'},
+        smooth: {
+          type: 'continuous'
+        }
+      },
+      physics: {
+        stabilization: false,
+        barnesHut: {
+          gravitationalConstant: -8000,
+          springConstant: 0.01,
+          springLength: 100
+        }
+      },
+      interaction: {
+        tooltipDelay: 200,
+        hideEdgesOnDrag: true
+      }
+    };
+
+    // Note: data is coming from ./datasources/WorldCup2014.js
+    network = new vis.Network(container, data, options);
+  }
+
+  redrawAll()
+
+  network.on("doubleClick", function (params) {
+        params.event = "[original event]";
+        window.open("http://muziekcentrum.be/carrier.php?ID=" + params.nodes, '_blank');
+    });
+</script>
+
+</body>
+</html>
