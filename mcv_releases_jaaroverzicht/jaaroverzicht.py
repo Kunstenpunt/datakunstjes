@@ -1,9 +1,9 @@
-sql = """
+releases_sql = """
 select
   c.ID,
   c.Title,
   id.Name,
-  g.Name,
+  g.ID,
   i.FileName
 from
   carriers c
@@ -39,48 +39,85 @@ group by
   c.ID
 """
 
+genres_sql = """
+select gg.ID, gg.Name, g.ID, g.Name
+from genres gg
+left join genres g on g.ID = gg.ParentID
+"""
+
 from pandas import read_csv
 from json import dumps
 
-df = read_csv("mcv_export_12_12_2016_17_22.txt", delimiter="\t", encoding="utf-16")
+df = read_csv("mcv_export_13_12_2016_13_11.txt", delimiter="\t", encoding="utf-16", header=None)
+genres = read_csv("mcv_genres.txt", delimiter="\t", encoding="utf-16", header=None)
 
-uniq_nodes = {}
+uniq_nodes = set()
 uniq_edges = set()
 nodes = list()
 edges = list()
-i = 0
+
+nodes.append({
+    "id": 999,
+    "label": "2016",
+    "title": "2016",
+    "shape": "dot",
+    "value": 300
+})
+
+for row in genres.iterrows():
+    genre_id = row[1][0]
+    genre_naam = row[1][1]
+    parent_id = row[1][2]
+    parent_naam = row[1][3]
+    if genre_id not in uniq_nodes:
+        nodes.append({
+            "id": genre_id,
+            "label": genre_naam,
+            "title": genre_naam,
+            "shape": "dot",
+            "value": 200
+        })
+        uniq_nodes.add(genre_id)
+
+for row in genres.iterrows():
+    genre_id = row[1][0]
+    parent_id = row[1][2]
+    edge_uid = str(genre_id) + "_" + str(parent_id)
+    edge = {
+        "from": genre_id,
+        "to": parent_id
+    }
+    if edge_uid not in uniq_edges and parent_id != 0:
+        edges.append(edge)
+        uniq_edges.add(edge_uid)
+
+    if parent_id == 0 and str(genre_id) + "_999" not in uniq_edges:
+        edges.append({
+            "from": genre_id,
+            "to": 999
+        })
+        uniq_edges.add(str(genre_id) + "_999")
 
 for row in df.iterrows():
     release_id = int(row[1][0])
     release_titel = row[1][1]
     ma = row[1][2]
-    genre = row[1][3]
+    genre_id = row[1][3]
     image = row[1][4]
 
-    if release_id not in uniq_nodes.keys():
+    if release_id not in uniq_nodes:
         nodes.append({
             "id": release_id,
             "title": ma + " - " + release_titel,
             "image": "http://files.muziekcentrum.be/images/" + image,
             "shape": 'image'
         })
-        uniq_nodes[release_titel] = release_id
+        uniq_nodes.add(release_id)
 
-    if genre not in uniq_nodes.keys():
-        nodes.append({
-            "id": i,
-            "label": genre,
-            "title": genre,
-            "value": 200,
-            "shape": "dot"
-        })
-        uniq_nodes[genre] = i
-        i += 1
-
-    edge_uid = str(uniq_nodes[release_titel]) + "_" + str(uniq_nodes[genre])
+    edge_uid = str(release_id) + "_" + str(genre_id)
     edge = {
-        "from": uniq_nodes[release_titel],
-        "to": uniq_nodes[genre]
+        "from": release_id,
+        "to": genre_id
     }
     if edge_uid not in uniq_edges:
         edges.append(edge)
