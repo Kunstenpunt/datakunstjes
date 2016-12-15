@@ -4,6 +4,7 @@ select
   c.Title,
   id.Name,
   g.ID,
+  g.Name,
   i.FileName
 from
   carriers c
@@ -48,7 +49,7 @@ left join genres g on g.ID = gg.ParentID
 from pandas import read_csv
 from json import dumps
 
-df = read_csv("mcv_export_13_12_2016_13_11.txt", delimiter="\t", encoding="utf-16", header=None)
+df = read_csv("mcv_export_15_12_2016_17_44.txt", delimiter="\t", encoding="utf-16", header=None)
 genres = read_csv("mcv_genres.txt", delimiter="\t", encoding="utf-16", header=None)
 
 uniq_nodes = set()
@@ -64,11 +65,14 @@ nodes.append({
     "value": 300
 })
 
-for row in genres.iterrows():
-    genre_id = row[1][0]
-    genre_naam = row[1][1]
-    parent_id = row[1][2]
-    parent_naam = row[1][3]
+for row in df.iterrows():
+    release_id = int(row[1][0])
+    release_titel = row[1][1]
+    ma = row[1][2]
+    genre_id = row[1][3]
+    genre_naam = row[1][4]
+    image = row[1][5]
+
     if genre_id not in uniq_nodes:
         nodes.append({
             "id": genre_id,
@@ -79,37 +83,11 @@ for row in genres.iterrows():
         })
         uniq_nodes.add(genre_id)
 
-for row in genres.iterrows():
-    genre_id = row[1][0]
-    parent_id = row[1][2]
-    edge_uid = str(genre_id) + "_" + str(parent_id)
-    edge = {
-        "from": genre_id,
-        "to": parent_id
-    }
-    if edge_uid not in uniq_edges and parent_id != 0:
-        edges.append(edge)
-        uniq_edges.add(edge_uid)
-
-    if parent_id == 0 and str(genre_id) + "_999" not in uniq_edges:
-        edges.append({
-            "from": genre_id,
-            "to": 999
-        })
-        uniq_edges.add(str(genre_id) + "_999")
-
-for row in df.iterrows():
-    release_id = int(row[1][0])
-    release_titel = row[1][1]
-    ma = row[1][2]
-    genre_id = row[1][3]
-    image = row[1][4]
-
     if release_id not in uniq_nodes:
         nodes.append({
             "id": release_id,
             "title": ma + " - " + release_titel,
-            "image": "http://files.muziekcentrum.be/images/" + image,
+            "image": "http://files.muziekcentrum.be/listimages/" + image,
             "shape": 'image'
         })
         uniq_nodes.add(release_id)
@@ -122,6 +100,33 @@ for row in df.iterrows():
     if edge_uid not in uniq_edges:
         edges.append(edge)
         uniq_edges.add(edge_uid)
+
+for row in genres.iterrows():
+    genre_id = row[1][0]
+    parent_id = row[1][2]
+    edge_uid = str(genre_id) + "_" + str(parent_id)
+    edge = {
+        "from": genre_id,
+        "to": parent_id
+    }
+    if genre_id in uniq_nodes:
+        if edge_uid not in uniq_edges and parent_id != 0:
+            edges.append(edge)
+            uniq_edges.add(edge_uid)
+
+    if parent_id not in uniq_nodes:
+        edges.append({
+            "from": genre_id,
+            "to": 999
+        })
+        uniq_edges.add(str(genre_id) + "_999")
+
+    if parent_id == 0 and str(genre_id) + "_999" not in uniq_edges:
+        edges.append({
+            "from": genre_id,
+            "to": 999
+        })
+        uniq_edges.add(str(genre_id) + "_999")
 
 with open("nodes.js", "w") as f:
     f.write("var rawnodes = " + dumps(nodes, indent=2))

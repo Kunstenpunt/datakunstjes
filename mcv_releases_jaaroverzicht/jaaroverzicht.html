@@ -11,23 +11,40 @@
 
   <style type="text/css">
     #mynetwork {
-      width: 900px;
-      height: 500px;
+      width: 800px;
+      height: 600px;
+      margin-left: -100px;
       border: 1px solid lightgray;
+    }
+
+    body {
+      width: 600px;
+      margin: auto;
+      margin-top: 50px;
+      margin-bottom: 50px;
     }
   </style>
 </head>
 <body>
 
-<p>Een grafiekje</p>
+<h1>Jaaroverzicht 2016: albums</h1>
 
-<p>Albumhoesjes gelinkt aan een genre. Hover over het covertje om de uitvoerder en de release titel te zien. Dubbelklik op de cover om de uitgebreide informatie te zien in een nieuw tabblad.</p>
+<p>
+  In 2016 zijn er ongeveer 500 albums uitgebracht door Vlaamse artiesten.
+  In de onderstaande visualisatie worden de albums getoond in groepjes per genre.
+  Je kan inzoomen door te scrollen en navigeren door de graaf door te slepen.
+  Als je dubbelklikt op een albumcover word je naar een pagina geleid met meer informatie over die release.
+</p>
 
 <div id="mynetwork"></div>
 
-<pre id="mcv"></pre>
-
-<p>Als dat niet mooi is. By the way; zit je er niet in, laat iets weten aan Quinten.</p>
+<p>
+  De gegevens voor deze graaf zijn gebaseerd op de data van <a href="http://www.kunsten.be">Kunstenpunt</a>,
+  meer specifiek komen de albums uit de <a href="http://muziekcentrum.be">muziekcentrum databank</a>.
+  Enkel albums die verschijnen op vinyl of een geperste CD komen in aanmerking om opgenomen te worden in deze databank.
+  En tot nader order hebben we digitale releases (nog?) niet in het vizier.
+  Hebben we jouw album over het hoofd gezien? Laat het weten aan <a href="quinten@kunsten.be">Quinten</a>!
+</p>
 
 <script type="text/javascript">
   var network;
@@ -41,31 +58,32 @@
       nodes: rawnodes,
       edges: rawedges
     };
+
     var options = {
       nodes: {
+        shape: 'dot',
         scaling: {
-          min: 20,
-          max: 40
+          min: 10,
+          max: 30
         },
         font: {
-          size: 25,
+          size: 35,
           face: 'Tahoma'
         }
       },
       edges: {
-        width: 0.75,
+        width: 0.95,
         color: {inherit: 'from'},
-        smooth: {
-          type: 'continuous'
-        }
+        smooth: false
       },
       physics: {
         stabilization: false,
         barnesHut: {
-          gravitationalConstant: -8000,
-          springConstant: 0.01,
-          springLength: 100
-        }
+          gravitationalConstant: -40000,
+          springConstant: 0.35,
+          springLength: 250
+        },
+        minVelocity: 50
       },
       interaction: {
         tooltipDelay: 200,
@@ -73,7 +91,6 @@
       }
     };
 
-    // Note: data is coming from ./datasources/WorldCup2014.js
     network = new vis.Network(container, data, options);
   }
 
