@@ -70,7 +70,10 @@
 
   network.on("doubleClick", function (params) {
         params.event = "[original event]";
-        window.open("http://muziekcentrum.be/carrier.php?ID=" + params.nodes, '_blank');
+        console.log(params);
+        if(params.nodes.length > 0) {
+          window.open("http://muziekcentrum.be/carrier.php?ID=" + params.nodes, '_blank');
+        }
     });
 </script>
 
